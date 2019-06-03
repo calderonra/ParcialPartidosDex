@@ -4,7 +4,11 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.raul.partidosdex.Entities.Partido
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @Database(entities=[Partido::class],version=1)
@@ -27,6 +31,30 @@ public abstract class PartidosRoomDatabase : RoomDatabase(){
                 instance
             }
         }
+
+        private class PartidosDatabaseCallback(
+            private val scope: CoroutineScope
+        ) : RoomDatabase.Callback(){
+            override fun onOpen(db: SupportSQLiteDatabase) {
+                super.onOpen(db)
+
+                INSTANCE?.let{database->
+
+                    scope.launch (Dispatchers.IO){
+                        populateDatabse(database.partidosDao())
+                    }
+
+                }
+
+            }
+        }
+
+        suspend fun populateDatabse(partidoDao:partidoDao){
+
+            partidoDao.deleteAll()
+            var partido= Partido(0,"21/02/13","PSG",2,"Ajax",1)
+        }
+
     }
 }
 
